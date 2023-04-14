@@ -1,5 +1,20 @@
 #include"header.h"
+
+uint32_t myrand(int min,int max);
+void _checksummaker(Segment* s,char* code);
+void _psuedoheadmaker(Segment* s,char* code);
+void _tcpheadermaker(Segment* s,char* code);
+void _headermaker(Segment* s,char* code);
+void printheader(char* header);
+void printsegment(Segment* s);
+void headercompare(char* ans ,char* input, char* result);
+void mysend(int fd,char *output);
+void createtestfile(Segment* test);
+void itos(int num,char* str);
+void randip(char* ip);
+
 void _checksummaker(Segment* s,char* code){
+
     if(strcmp(code,"wayne75525")!=0){
         printf("Don't do this\n");
         exit(0);
@@ -151,6 +166,7 @@ void serverfunction(int clientfd){
         while(1){
             recv(clientfd,ibuffer,sizeof(ibuffer),0);
             if(strcmp(ibuffer,"test")==0){
+                memset(ibuffer,sizeof(ibuffer),0);
                 Segment s_test;
                 char input_header[20];
                 createtestfile(&s_test);
@@ -159,13 +175,14 @@ void serverfunction(int clientfd){
                 memset(obuffer,sizeof(obuffer),0);
                 recv(clientfd,ibuffer,sizeof(ibuffer),0);//receive client's header
                 memcpy(input_header,ibuffer,sizeof(input_header));
+                memset(ibuffer,sizeof(ibuffer),0);
                 _headermaker(&s_test,"asiagodtone");
                 headercompare(s_test.header,input_header,obuffer);
                 send(clientfd,obuffer,sizeof(obuffer),0);
                 memset(obuffer,sizeof(obuffer),0);
                 break;
             }
-
+            else if (strcmp(ibuffer,"quit")==0) break;
             else {
                 mysend(clientfd,"Wrong input!!,enter \"test\" to start!." );
             }
@@ -180,6 +197,7 @@ void receivedata(int sockfd,Segment* s){
     while(recv(sockfd,ibuffer,sizeof(ibuffer),0)){
         printf("server: %s\n",ibuffer);
         scanf("%s",obuffer);
+        
         send(sockfd,obuffer,sizeof(obuffer),0);
 
         if(strcmp(obuffer,"test")==0) {

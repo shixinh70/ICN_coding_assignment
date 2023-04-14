@@ -27,9 +27,9 @@ int main(int argc , char *argv[])
     ///////////////////////////////////////////////////////////
     //                   TASK2,3(Client)                     //
     ///////////////////////////////////////////////////////////
-    // TODO: Create a Segment                                //
-    // TODO: Put your socket fd into the receivedata()       //
-    // TODO: Write your own function to create header        //
+    // TODO: Instantiate a Segment                           //
+    // TODO: Send your socket_fd into the receivedata()      //
+    // TODO: Write your own function to create header.       //
     //       (All information is in the Segment instance.    //
     // TODO: Use sendheader(char* header) to send the header //
     //       to server.                                      //
@@ -37,12 +37,12 @@ int main(int argc , char *argv[])
     // Example:                                              //
     //                                                       //
     //       Segment s;                                      //
-    //       receivedata(sockfd,&s);                         //
+    //       receivedata(sock_fd,&s);                        //
     //       myheadercreater(&s);                            //
-    //       sendheader(sockfd,s.header)                     // 
+    //       sendheader(sock_fd,s.header)                    // 
     //                                                       //
     //                                                       //
     // Then you will see the result.                         //  
     ///////////////////////////////////////////////////////////
-    //_headermaker(&s,"asiagodtone");我寫的headermaker用法
+    
 }
