@@ -43,7 +43,7 @@ int main(int argc , char *argv[]){
     int client_len = sizeof(clientAddr);
 
     while(1){
-        client_fd = accept(socket_fd, (struct sockaddr *)&clientAddr, &client_len);
+        client_fd = accept(socket_fd, (struct sockaddr *)&clientAddr, (socklen_t*)&client_len);
         strcpy(o_buffer,"Hi, I'm server 111065540");
         send(client_fd,o_buffer,sizeof(o_buffer),0);
         memset(o_buffer,0,sizeof(o_buffer));

@@ -166,7 +166,7 @@ void serverfunction(int clientfd){
         while(1){
             recv(clientfd,ibuffer,sizeof(ibuffer),0);
             if(strcmp(ibuffer,"test")==0){
-                memset(ibuffer,sizeof(ibuffer),0);
+                memset(ibuffer,0,sizeof(ibuffer));
                 Segment s_test;
                 char input_header[20];
                 createtestfile(&s_test);
