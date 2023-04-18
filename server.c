@@ -10,14 +10,56 @@
 
 int main(int argc , char *argv[]){
     srand(time(NULL));
+    
+    // int socket_fd = socket(PF_INET , SOCK_STREAM , 0);
+    // if (socket_fd < 0){
+    //     printf("Fail to create a socket.");
+    // }
+
+    // server 地址
+    // struct sockaddr_in serverAddr = {
+    //     .sin_family = AF_INET,
+    //     .sin_addr.s_addr = INADDR_ANY,
+    //     .sin_port = htons(45525)
+    // };
+
+    // 將建立的 socket 綁定到 serverAddr 指定的 port
+    // if (bind(socket_fd, (const struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
+    //     perror("Bind socket failed!");
+    //     close(socket_fd);
+    //     exit(0);
+    // }
+    // 初始化，準備接受 connect
+    // backlog = 5，在 server accept 動作之前，最多允許五筆連線申請
+    // 回傳 -1 代表 listen 發生錯誤
+    // if (listen(socket_fd, 5) == -1) {
+    //     printf("socket %d listen failed!\n", socket_fd);
+    //     close(socket_fd);
+    //     exit(0);
+    // }
+    // char o_buffer[1024];
+    // int client_fd;
+    // struct sockaddr_in clientAddr;
+    // int client_len = sizeof(clientAddr);
+
+    // while(1){
+    //     client_fd = accept(socket_fd, (struct sockaddr *)&clientAddr, &client_len);
+    //     strcpy(o_buffer,"Hi, I'm server 111065540");
+    //     send(client_fd,o_buffer,sizeof(o_buffer),0);
+    //     memset(o_buffer,0,sizeof(o_buffer));
+    //     serverfunction(client_fd);
+    // }
+    
     ////////////////////////////////////////////////////////////
-    //                   TASK1(Server)                        //
+    //                   TASK 1(Server)                       //
     ////////////////////////////////////////////////////////////
     // TODO: create a TCP socket bind to port 45525.          //
     // TODO: Listen the TCP socket.                           //
     // TODO: Accept the connect and get the Client socket     //
     //       file descriptor.                                 //
-    // TODO: Send 1 message "Hi, I'm {student_ID}." to client.//
+    // TODO: Send 1 message "Hi, I'm server {Your_student_ID}"//
+    //       to client.                                       //
+    // Then go finish the client.c TASK 1                     //
     ////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////////////////////////
@@ -28,8 +70,6 @@ int main(int argc , char *argv[]){
     // Example:                                               //
     //           serverfunction(clientsocketfd);              //
     //                                                        //
-    // Then go finish the client.c                            //
+    // Then go finish the client.c TASK2,3                    //
     ////////////////////////////////////////////////////////////
-    
-
-} 
+}

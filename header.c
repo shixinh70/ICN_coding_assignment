@@ -22,7 +22,7 @@ void _checksummaker(Segment* s,char* code){
     char temp[32] ={0};
     uint32_t buffer = 0;
     memcpy(temp,s->header,20);
-    memcpy(temp+20,s->_pseudoheader,12);
+    memcpy(temp+20,s->pseudoheader,12);
     uint16_t* p = (uint16_t*)temp;
     for(int i =0;i<16;i++){
         buffer += *(p+i);
@@ -39,8 +39,8 @@ void _psuedoheadmaker(Segment* s,char* code){
     temp[0] = inet_addr(s->l3info.SourceIpv4);
     temp[1] = inet_addr(s->l3info.DesIpv4);
     temp[2] = htonl((s->l4info.HeaderLen*4)+(s->l3info.protocol<<16) + 0);
-    for(int i=0;i<3;i++){
-        memcpy(s->_pseudoheader+4*i,temp+i,4);
+    for(int i=0;i<3;i++){//htonl 把高記憶體位置的東西和低記憶體位置的東西互換 (只要照原本的高低位填，在互換就會得到要的header)
+        memcpy(s->pseudoheader+4*i,temp+i,4);
     }
 }
 void _tcpheadermaker(Segment* s,char* code){
@@ -48,7 +48,7 @@ void _tcpheadermaker(Segment* s,char* code){
         printf("Don't do this\n");
         exit(0);
     }
-    uint32_t temp[5] = {0};
+    uint32_t temp[5] = {0};//把array中最高記憶體位置的東西抓到最低記憶體位置(header中高記憶體位置為(Source port address)，所以要填高記憶體位置)
     temp[0] = 0;
     temp[1] = s->l4info.WindowSize + (s->l4info.Flag<<16) +(s->l4info.HeaderLen<<28);
     temp[2] = s->l4info.AckNum;
@@ -162,7 +162,7 @@ void createtestfile(Segment* test){
 void serverfunction(int clientfd){
     char ibuffer[1024] = {};
     char obuffer[1024] = {};
-    mysend(clientfd,"Hi this is Server,enter \"test\" to start!. or \"quit\" to leave!" );
+    mysend(clientfd,"Enter \"test\" to start!. or \"quit\" to leave!" );
         while(1){
             recv(clientfd,ibuffer,sizeof(ibuffer),0);
             if(strcmp(ibuffer,"test")==0){
@@ -225,5 +225,5 @@ void sendheader(int sockfd, char* header){
     send(sockfd,obuffer,sizeof(obuffer),0);
     memset(obuffer,sizeof(obuffer),0);
     recv(sockfd,ibuffer,sizeof(ibuffer),0);
-    printf("server: %s\n",ibuffer);
+    printf("server: %s\n",ibuffer); 
 }

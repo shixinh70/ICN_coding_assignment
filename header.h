@@ -19,7 +19,7 @@ typedef struct l3info{
 
 typedef struct Segment{
     char header[20];
-    char _pseudoheader[12];
+    char pseudoheader[12];
     L3info l3info;
     L4info l4info;
 }Segment;
