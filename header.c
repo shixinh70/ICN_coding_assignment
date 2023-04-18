@@ -172,14 +172,14 @@ void serverfunction(int clientfd){
                 createtestfile(&s_test);
                 memcpy(obuffer,&s_test,sizeof(Segment));
                 send(clientfd,obuffer,sizeof(obuffer),0);//send test file
-                memset(obuffer,sizeof(obuffer),0);
+                memset(obuffer,0,sizeof(obuffer));
                 recv(clientfd,ibuffer,sizeof(ibuffer),0);//receive client's header
                 memcpy(input_header,ibuffer,sizeof(input_header));
-                memset(ibuffer,sizeof(ibuffer),0);
+                memset(obuffer,0,sizeof(obuffer));
                 _headermaker(&s_test,"asiagodtone");
                 headercompare(s_test.header,input_header,obuffer);
                 send(clientfd,obuffer,sizeof(obuffer),0);
-                memset(obuffer,sizeof(obuffer),0);
+                memset(obuffer,0,sizeof(obuffer));
                 break;
             }
             else if (strcmp(ibuffer,"quit")==0) break;
@@ -223,7 +223,7 @@ void sendheader(int sockfd, char* header){
     char ibuffer[1024] = {0};
     memcpy(obuffer,header,20);
     send(sockfd,obuffer,sizeof(obuffer),0);
-    memset(obuffer,sizeof(obuffer),0);
+    memset(obuffer,0,sizeof(obuffer));
     recv(sockfd,ibuffer,sizeof(ibuffer),0);
     printf("server: %s\n",ibuffer); 
 }
