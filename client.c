@@ -18,6 +18,10 @@ int main(int argc , char *argv[])
 
     //Connect to server's socket.//
 
+    
+    //Receive message from server and print it out.//
+
+
 
     //////////////////////////////////////////////////////////
     //                   TASK1(Client)                      //  
