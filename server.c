@@ -53,7 +53,7 @@ int main(int argc , char *argv[]){
     // TODO: Put the client socket fd into serverfuntion()    //
     //                                                        //
     // Example:                                               //
-    //           serverfunction(clientsocketfd);              //
+    //           serverfunction(client_fd);                   //
     //                                                        //
     // Then go finish the client.c TASK2,3                    //
     ////////////////////////////////////////////////////////////
