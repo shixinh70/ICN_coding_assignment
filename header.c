@@ -158,7 +158,6 @@ void createtestfile(Segment* test){
     randip(test->l3info.SourceIpv4);
     randip(test->l3info.DesIpv4);
     test->l3info.protocol = 6;
-    test->l4info.Checksum = 0;
     test->l4info.AckNum = rand()+1;
     test->l4info.SeqNum = rand()+1;
     test->l4info.DesPort= myrand(1,__UINT16_MAX__);

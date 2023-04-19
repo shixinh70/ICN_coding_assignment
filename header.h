@@ -9,7 +9,7 @@
 #include <arpa/inet.h>
 
 typedef struct l4info{
-    uint32_t AckNum,SeqNum,SourcePort,DesPort,Flag,HeaderLen,WindowSize,Checksum;
+    uint32_t AckNum,SeqNum,SourcePort,DesPort,Flag,HeaderLen,WindowSize;
 }L4info;
 
 typedef struct l3info{
