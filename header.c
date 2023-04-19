@@ -91,7 +91,9 @@ void printsegment(Segment* s){
 void headercompare(char* ans ,char* input, char* result){
     int count = 0;
     int t2score = 0, t3score = 0;
+    int o_sp = 0, o_dp = 2, o_seq = 4, o_ack = 8 , o_hlen_flag = 12, o_winsize = 14, o_checksum = 16;   
     memset(result,0,strlen(result));
+
     sprintf(result,"\nThe ans header is:\n");
     for(int i=0;i<20;i++){
         if(ans[i]==input[i]){

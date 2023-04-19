@@ -53,7 +53,8 @@ int main(int argc , char *argv[])
     //                   TASK2,3(Client)                     //
     ///////////////////////////////////////////////////////////
     // TODO: Instantiate a Segment                           //
-    // TODO: Send your socket_fd into the receivedata().     //
+    // TODO: Send your socket_fd and the instance of Segment //
+    //       into the receivedata().                         //
     // TODO: Write your own function to create header.       //
     //       (All information is in the Segment instance.    //
     // TODO: Use sendheader(char* header) to send the header //
