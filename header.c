@@ -91,26 +91,32 @@ void printsegment(Segment* s){
 void headercompare(char* ans ,char* input, char* result){
     int count = 0;
     int t2score = 0, t3score = 0;
-    int o_sp = 0, o_dp = 2, o_seq = 4, o_ack = 8 , o_hlen_flag = 12, o_winsize = 14, o_checksum = 16;   
+    int sp=0,dp=0,seq=0,ack=0,len_flag=0,winsize=0,checksum = 0;   
     memset(result,0,strlen(result));
-
+    int tag[20] = {0} ;
     sprintf(result,"\nThe ans header is:\n");
     for(int i=0;i<20;i++){
+
         if(ans[i]==input[i]){
+            tag[i] = 1;
             count++;
-            if(i==16||i==17){
-                t3score +=5;
-            }
-            else t2score +=1;
         }
         sprintf(result+strlen(result),"%2X ",(uint8_t)ans[i]);
     }
+    if(tag[0]&&tag[1]) {sp=1;t2score+=3;}
+    if(tag[2]&&tag[3]) {dp=1;t2score+=3;}
+    if(tag[4]&&tag[5]&&tag[6]&&tag[7]) {seq=1;t2score+=3;}
+    if(tag[8]&&tag[9]&&tag[10]&&tag[11]) {ack=1;t2score+=3;}
+    if(tag[12]&&tag[13]) {len_flag= 1;t2score+=3;}
+    if(tag[14]&&tag[15]) {winsize=1;t2score+=3;}
+    if(tag[16]&&tag[17]) {checksum=1;t3score+=12;}
+    
     sprintf(result+strlen(result),"\n\nYour header is:\n");
     for(int i=0;i<20;i++){
         sprintf(result+strlen(result),"%2X ",(uint8_t)input[i]);
     }
-    sprintf(result+strlen(result),"\n\nYou got %d/20 bytes correct!!\nTask1 gets 72pts, \
-Task2 gets %dpts, Task3 gets %d pts\nTotal:%d",count,t2score,t3score,72+t2score+t3score);
+    sprintf(result+strlen(result),"\n\nYou got %d/20 bytes correct!!\nTask1 gets 70pts, \
+Task2 gets %dpts, Task3 gets %d pts\nTotal:%d",count,t2score,t3score,70+t2score+t3score);
     
 
 }

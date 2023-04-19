@@ -16,22 +16,21 @@ int main(int argc , char *argv[]){
         printf("Fail to create a socket.");
     }
 
-    //server 地址
+    // Set up server's address.
     struct sockaddr_in serverAddr = {
         .sin_family = AF_INET,
         .sin_addr.s_addr = INADDR_ANY,
         .sin_port = htons(45525)
     };
 
-    //將建立的 socket 綁定到 serverAddr 指定的 port
+    //Bind socket to the address.
     if (bind(socket_fd, (const struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
         perror("Bind socket failed!");
         close(socket_fd);
         exit(0);
     }
-    //初始化，準備接受 connect
-    //backlog = 5，在 server accept 動作之前，最多允許五筆連線申請
-    //回傳 -1 代表 listen 發生錯誤
+    
+    //Listening the socket.
     if (listen(socket_fd, 5) == -1) {
         printf("socket %d listen failed!\n", socket_fd);
         close(socket_fd);
@@ -42,6 +41,7 @@ int main(int argc , char *argv[]){
     struct sockaddr_in clientAddr;
     int client_len = sizeof(clientAddr);
 
+    //Accept the connect request.
     while(1){
         client_fd = accept(socket_fd, (struct sockaddr *)&clientAddr, (socklen_t*)&client_len);
         strcpy(o_buffer,"Hi, I'm server 111065540");
