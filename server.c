@@ -9,7 +9,6 @@
 #include "header.h"
 
 int main(int argc , char *argv[]){
-    srand(time(NULL)); 
 
     //Create TCP socket//
 

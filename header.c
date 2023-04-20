@@ -154,6 +154,7 @@ void randip(char* ip){
     }
 }
 void createtestfile(Segment* test){
+    srand(time(NULL)); 
     memset(test,0,sizeof(Segment));
     randip(test->l3info.SourceIpv4);
     randip(test->l3info.DesIpv4);
