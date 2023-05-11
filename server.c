@@ -9,7 +9,6 @@
 #include "header.h"
 
 int main(int argc , char *argv[]){
-    srand(time(NULL)); 
 
     //Create TCP socket//
 
@@ -38,7 +37,7 @@ int main(int argc , char *argv[]){
     ////////////////////////////////////////////////////////////
     //                   TASK 1(Server)                       //
     ////////////////////////////////////////////////////////////
-    // TODO: create a TCP socket bind to port 45525.          //
+    // TODO: Create a TCP socket bind to port 45525.          //
     // TODO: Listen the TCP socket.                           //
     // TODO: Accept the connect and get the Client socket     //
     //       file descriptor.                                 //
@@ -50,7 +49,7 @@ int main(int argc , char *argv[]){
     ////////////////////////////////////////////////////////////
     //                   TASK 2,3(Server)                     //
     ////////////////////////////////////////////////////////////
-    // TODO: Put the client socket fd into serverfuntion()    //
+    // TODO: Pass the client socket fd into serverfuntion()   //
     //                                                        //
     // Example:                                               //
     //           serverfunction(client_fd);                   //
