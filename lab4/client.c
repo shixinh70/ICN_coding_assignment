@@ -23,7 +23,7 @@ int udt_client_connect(int port){
         exit(0);
     }
     printf("Udt client: Connect server successfully\n");
-    char a[50] = {0};
+    return socket_fd;
 }
 void app_client_connect(int fd, int port){
     Segment sendS,recvS;
@@ -43,7 +43,7 @@ void app_client_connect(int fd, int port){
     
     memcpy(o_buffer,sendS.header,20); 
     
-    //send(fd,o_buffer,20,0);
+    send(fd,o_buffer,20,0);
     printheader(o_buffer);
     memset(o_buffer,0,sizeof(o_buffer));
     recv(fd,i_buffer,sizeof(i_buffer),0);
@@ -69,5 +69,6 @@ int main(){
     int fd = udt_client_connect(45525);
     app_client_connect(fd,45525);
     //transmit_data();
+    while(1);
     
 }
