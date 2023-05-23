@@ -1,21 +1,25 @@
 #include "header.h"
 void printsegment(Segment* s){
-    printf("Receive information:\n\n\
-            Layer 3 information:\n\
-            Source IP: %s , Destination Ip: %s \n\
-            Protocol: %u (TCP)\n\n\
-            Layer 4 information:\n\
+
+    char packet_flag[10] = {0};
+    if (s->l4info.Flag ==0x2)  strcpy(packet_flag,"SYN");
+    if (s->l4info.Flag ==0x10) strcpy(packet_flag,"ACK");
+    if (s->l4info.Flag ==0x12) strcpy(packet_flag,"SYN ACK");
+    if (s->l4info.Flag ==0x18) strcpy(packet_flag,"PSH ACK");
+    printf("Receive packet:\n\n\
             Source port: %u , Destination port: %u \n\
             Seq number: %u , Ack number: %u \n\
-            Header length: %u (bytes) , FLAG: 0x%X (ACK) \n\
-            Window size: %u \n\n",s->l3info.SourceIpv4,s->l3info.DesIpv4,s->l3info.protocol,\
+            Header length: %u (bytes) , FLAG: 0x%X (%s) \n\
+            Window size: %u , CheckSum: %X \n\n",\
             s->l4info.SourcePort,s->l4info.DesPort,s->l4info.SeqNum,\
-            s->l4info.AckNum,s->l4info.HeaderLen,s->l4info.Flag,s->l4info.WindowSize);
+            s->l4info.AckNum,s->l4info.HeaderLen,s->l4info.Flag,packet_flag,s->l4info.WindowSize,\
+            (uint16_t)s->l4info.CheckSum);
 }
 void printheader(char* header){
     for(int i=0;i<20;i++){
         printf("%X ",(uint8_t)header[i]);
     }
+    printf("\n");
 }
 
 void parse_packet(char* recvbuffer,Segment* recvSegment){
@@ -24,7 +28,6 @@ void parse_packet(char* recvbuffer,Segment* recvSegment){
     recvSegment->l3info.protocol = 6;
     char header[20];
     memcpy(header,recvbuffer,20);
-
     uint32_t header_32[20] = {0};
     for(int i=0;i<20;i++){
         header_32[i] = (uint8_t)header[i];
@@ -37,7 +40,6 @@ void parse_packet(char* recvbuffer,Segment* recvSegment){
     recvSegment->l4info.Flag =header_32[13];
     recvSegment->l4info.WindowSize = (header_32[14]<<8)+header_32[15];
     recvSegment->l4info.CheckSum = (header_32[16]<<8)+header_32[17];
-
 }
 void _checksummaker(Segment* s){
 
