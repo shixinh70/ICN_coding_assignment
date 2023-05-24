@@ -138,6 +138,7 @@ int main(){
                 round++;
                 currentSeg += bytesRead;
             }
+            lastacked = -1;
             //receive thread//
             // ThreadArgs threadargs = {
             //     .buff_len = sizeof(i_buffer),

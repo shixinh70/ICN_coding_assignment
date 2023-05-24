@@ -53,18 +53,27 @@ int main(){
     replyS(&sendS,currentSeg,currentAck,ACK);
     sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
     /*--------3handshake---------*/
-
+    printf("------------------\n");
     /*-------------------receive data-------------------------------------------------------*/
-    Segment ack_buffer[10];
-
+    Segment last_recv_packet = recvS;
+    int base = sendS.l4info.AckNum;
     while(1){
         ssize_t byterecv = recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
-        if(!corrupt(0.3)){
-            printf("%d\n",byterecv);
-            currentAck +=(byterecv-20);
-            replyS(&sendS,currentSeg,currentAck,ACK);
-            sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
-            sleep(0);
+        printf("%d %d\n",recvS.l4info.SeqNum,sendS.l4info.AckNum);
+        if((!corrupt(0.3))){
+            if(recvS.l4info.SeqNum == sendS.l4info.AckNum){
+                last_recv_packet = recvS;
+                currentAck = last_recv_packet.l4info.SeqNum + byterecv - 20;
+                replyS(&sendS,currentSeg,currentAck,ACK);
+                sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+                sleep(0);
+            }
+            else{
+                printf("Rdt client: Not accmualate ack!\n");
+                sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+                sleep(0);
+            }
+            
         }
         else{
             printf("Rdt client: Receive corrupt pakcet\n");

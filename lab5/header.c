@@ -99,7 +99,7 @@ void sendpacket(int fd,char* buffer,int buf_len,Segment* sendS,char* tag){
     if(sendS->p_len!=0){
         memcpy(buffer+sizeof(sendS->header),sendS->payload,sendS->p_len);
     }
-    printf("Rdt %s: send packet seg= %u, ack= %u to port:%u\n",tag,sendS->l4info.SeqNum,sendS->l4info.AckNum,sendS->l4info.DesPort);
+    printf("Rdt %s: send packet seg= %u, ack= %u, len= %u to port:%u\n",tag,sendS->l4info.SeqNum,sendS->l4info.AckNum,sendS->p_len,sendS->l4info.DesPort);
     send(fd,buffer,buf_len,0);
 
 };
