@@ -48,13 +48,15 @@ int main(){
         char o_buffer[1020];
         Segment recvS,sendS;
         uint32_t currentSeg, currentAck;
-        uint16_t cport;
+        uint16_t dPort;
 
         printf("Rdt server: Hello, This is Rdt server on 127.0.0.1:45525\n");
         printf("Rdt server: Waiting for the client to connect\n");
         /*--------------3handshake-----------------*/
         recv(client_fd,i_buffer,sizeof(i_buffer),0);
         parse_packet(i_buffer,&recvS);
+        printf("Rdt server: Receive packet\n");
+
         if(recvS.l4info.DesPort!=SERVER_PORT||recvS.l4info.Flag!=SYN){
             if(recvS.l4info.DesPort!=SERVER_PORT) printf("Rdt server: Port %u is closed!\n",recvS.l4info.DesPort);
             else printf("Rdt server: Not a SYN packet(0x2)\n");
@@ -62,15 +64,17 @@ int main(){
             continue;
         }
         else{
-            
-            printf("Rdt server: Receive SYN packet from port %u\n", recvS.l4info.DesPort);
-            cport = recvS.l4info.SourcePort;
+            printf("Rdt server: handshaking with client from 127.0.0.1:%u\n", recvS.l4info.SourcePort);
+            dPort = recvS.l4info.SourcePort;
             currentSeg = rand();
-            currentAck = recvS.l4info.AckNum+1;
-            
-            
-
-            send()
+            currentAck = recvS.l4info.SeqNum+1;
+            initS(&sendS,SERVER_PORT,dPort);
+            replyS(&sendS,currentSeg,currentAck,SYNACK);
+            // _headermaker(&sendS);
+            // printf("Rdt server: Send SYN ACK packet to port %u\n", sendS.l4info.DesPort);
+            // send(client_fd,o_buffer,sizeof(o_buffer),0);
+            sendpacket(client_fd,o_buffer,&sendS);
+            while(1);
         } 
         /*-----------------------------------------*/
 

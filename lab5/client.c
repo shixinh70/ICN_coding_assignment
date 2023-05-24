@@ -1,5 +1,6 @@
 #include "header.h"
 int main(){
+    srand(getpid());
         //Create socket.
     int socket_fd = socket(PF_INET, SOCK_STREAM, 0);
     if (socket_fd < 0) {
@@ -21,4 +22,21 @@ int main(){
         close(socket_fd);
         exit(0);
     }
+    /*--------3handshake---------*/
+    char o_buffer[20], i_buffer[1020];
+    uint32_t currentSeg, currentAck;
+    uint16_t sPort,Dport;
+    Segment sendS,recvS;
+
+    currentSeg = rand();
+    currentAck = 0;
+    sPort = (rand()%65535)+1;
+    printf("%d",sPort);
+    Dport = SERVER_PORT;
+    initS(&sendS,sPort,Dport);
+    replyS(&sendS,currentSeg,currentAck,SYN);
+    _headermaker(&sendS);
+    memcpy(o_buffer,&sendS,sizeof(o_buffer));
+    send(socket_fd,o_buffer,sizeof(o_buffer),0);
+    
 }
