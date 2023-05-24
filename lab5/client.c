@@ -1,4 +1,14 @@
 #include "header.h"
+int corrupt(double probability) {
+    double randomNum = (double)rand() / RAND_MAX;
+
+    if (randomNum <= probability) {
+        return 1;
+    } 
+    else {
+        return 0;
+    }
+}
 int main(){
     srand(getpid());
         //Create socket.
@@ -31,12 +41,44 @@ int main(){
     currentSeg = rand();
     currentAck = 0;
     sPort = (rand()%65535)+1;
-    printf("%d",sPort);
+    //printf("%d",sPort);
     Dport = SERVER_PORT;
     initS(&sendS,sPort,Dport);
     replyS(&sendS,currentSeg,currentAck,SYN);
-    _headermaker(&sendS);
-    memcpy(o_buffer,&sendS,sizeof(o_buffer));
-    send(socket_fd,o_buffer,sizeof(o_buffer),0);
+    sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+
+    recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
+    currentSeg = recvS.l4info.AckNum+1;
+    currentAck = recvS.l4info.SeqNum+1;
+    replyS(&sendS,currentSeg,currentAck,ACK);
+    sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+    /*--------3handshake---------*/
+
+    /*-------------------receive data-------------------------------------------------------*/
+    Segment ack_buffer[10];
+
+    while(1){
+        ssize_t byterecv = recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
+        if(!corrupt(0.3)){
+            printf("%d\n",byterecv);
+            currentAck +=(byterecv-20);
+            replyS(&sendS,currentSeg,currentAck,ACK);
+            sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+            sleep(0);
+        }
+        else{
+            printf("Rdt client: Receive corrupt pakcet\n");
+            sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+            sleep(0);
+        }
+    }
+
+
+
+    
+    
+    // _headermaker(&sendS);
+    // memcpy(o_buffer,&sendS,sizeof(o_buffer));
+    // send(socket_fd,o_buffer,sizeof(o_buffer),0);
     
 }

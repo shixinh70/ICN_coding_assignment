@@ -1,5 +1,10 @@
 /////////////////////////shared//////////////
 #pragma once
+#include <pthread.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <signal.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +17,13 @@
 #define SYN 0X2
 #define ACK 0X10 
 #define SYNACK 0X12 
+#define ACKPSH 0X18
+
+
+typedef struct packet{
+    char buffer[1020];
+    uint32_t ack;
+}Packet;
 typedef struct l4info{
     uint32_t SourcePort,DesPort,SeqNum,AckNum,HeaderLen,Flag,WindowSize,CheckSum;
 }L4info;
@@ -32,6 +44,15 @@ typedef struct Segment{
 typedef struct connectInfo{
     uint16_t sPort,cPort;
 }ConnectInfo;
+typedef struct threadArgs {
+    int fd;
+    char* buffer;
+    int buff_len;
+    Segment* recvS;
+    char* tag;
+} ThreadArgs;
+
+void* thread_function(void* arg);
 
 void replyS(Segment* sendSegment,uint32_t seg,uint32_t ack, uint16_t flag);
 void parse_packet(char* recvbuffer,Segment* recvSegment);
@@ -41,7 +62,11 @@ void _psuedoheadmaker(Segment* s);
 void _tcpheadermaker(Segment* s);
 void _headermaker(Segment* s);
 void packetcreator(Segment* sendS, char* paylaod, int p_len,char* buffer);
-void sendpacket(int fd,char* buffer,Segment* sendS);
+void sendpacket(int fd,char* buffer,int buf_len,Segment* sendS,char* tag);
+ssize_t recvpacket(int fd,char* buffer,int buff_len,Segment* recvS,char* tag);
+int packet_corrupt(Segment s,char* tag);
+void printheader(char* header);
+
 /////////////////////////shared///////////////////////
 
 /////////////////////////server/////////////////////////

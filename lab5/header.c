@@ -1,6 +1,9 @@
 #include "header.h"
 /////////////////////////common///////////////////////////
 
+
+
+
 void _checksummaker(Segment* s){
 
     char temp[32] ={0};
@@ -57,12 +60,13 @@ void initS(Segment* sendSegment,uint16_t sPort,uint16_t dPort){
     sendSegment->l4info.WindowSize = 65525;
 }
 void parse_packet(char* recvbuffer,Segment* recvSegment){
-
     strcpy(recvSegment->l3info.DesIpv4,"127.0.0.1");
     strcpy(recvSegment->l3info.SourceIpv4,"127.0.0.1");
     recvSegment->l3info.protocol = 6;
     char header[20];
     memcpy(header,recvbuffer,20);
+    memcpy(recvSegment->header,recvbuffer,20);
+    memcpy(recvSegment->payload,recvbuffer+20,recvSegment->p_len);
     uint32_t header_32[20] = {0};
     for(int i=0;i<20;i++){
         header_32[i] = (uint8_t)header[i];
@@ -78,27 +82,56 @@ void parse_packet(char* recvbuffer,Segment* recvSegment){
 }
 
 
+
 void replyS(Segment* sendSegment,uint32_t seg,uint32_t ack, uint16_t flag){
     sendSegment->l4info.SeqNum = seg;
     sendSegment->l4info.AckNum = ack;
     sendSegment->l4info.Flag = flag;
 }
-
-// void packetcreator(Segment* sendS, char* paylaod, int p_len,char* buffer){
-//     _headermaker(sendS);
-//     memcpy(buffer,sendS->header,sizeof(sendS->header));
-//     memcpy(buffer+sizeof(sendS->header),paylaod,p_len);
-// }
-void sendpacket(int fd,char* buffer,Segment* sendS){
+void printheader(char* header){
+    for(int i=0;i<20;i++){
+        printf("%X ",(uint8_t)header[i]);
+    }
+}
+void sendpacket(int fd,char* buffer,int buf_len,Segment* sendS,char* tag){
     _headermaker(sendS);
     memcpy(buffer,sendS->header,sizeof(sendS->header));
     if(sendS->p_len!=0){
         memcpy(buffer+sizeof(sendS->header),sendS->payload,sendS->p_len);
     }
-    printf("Rdt server: send packet seg= %u, ack= %u to port:%u\n",sendS->l4info.SeqNum,sendS->l4info.AckNum,sendS->l4info.DesPort);
+    printf("Rdt %s: send packet seg= %u, ack= %u to port:%u\n",tag,sendS->l4info.SeqNum,sendS->l4info.AckNum,sendS->l4info.DesPort);
+    send(fd,buffer,buf_len,0);
+
 };
-
-
+ssize_t recvpacket(int fd,char* buffer,int buff_len,Segment* recvS,char* tag){
+    int byterecv = recv(fd,buffer,buff_len,0);
+    if(byterecv==0){
+        printf("Rdt client: Server close socket\n");
+        close(fd);
+        exit(0);
+    }
+    int p_len = byterecv-20;
+    recvS->p_len = p_len;
+    parse_packet(buffer, recvS);
+    printf("Rdt %s: receive packet seg= %u, ack= %u from port:%u\n",tag,recvS->l4info.SeqNum,recvS->l4info.AckNum,recvS->l4info.DesPort);
+    return byterecv;
+}
+int packet_corrupt(Segment s,char* tag){
+    uint16_t packet_checksum,compute_checksum;
+    memcpy(&packet_checksum,s.header+16,2);
+    _headermaker(&s);
+    memcpy(&compute_checksum,s.header+16,2);
+    packet_checksum = ntohs(packet_checksum);
+    compute_checksum = ntohs(compute_checksum);
+    if(packet_checksum!=compute_checksum){
+        printf("%x %x\n",packet_checksum,compute_checksum);
+        printf("Udt %s: Checksum not fit, packet corrupt\n",tag);
+        return 1;
+    }
+    else return 0;
+    
+    
+}
 ////////////////////////common///////////////////////////
 
 
