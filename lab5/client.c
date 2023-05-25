@@ -1,14 +1,5 @@
 #include "header.h"
-int corrupt(double probability) {
-    double randomNum = (double)rand() / RAND_MAX;
 
-    if (randomNum <= probability) {
-        return 1;
-    } 
-    else {
-        return 0;
-    }
-}
 int main(){
     srand(getpid());
         //Create socket.
@@ -45,13 +36,13 @@ int main(){
     Dport = SERVER_PORT;
     initS(&sendS,sPort,Dport);
     replyS(&sendS,currentSeg,currentAck,SYN);
-    sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+    sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
 
     recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
     currentSeg = recvS.l4info.AckNum+1;
     currentAck = recvS.l4info.SeqNum+1;
     replyS(&sendS,currentSeg,currentAck,ACK);
-    sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
+    sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
     /*--------3handshake---------*/
     printf("------------------\n");
     /*-------------------receive data-------------------------------------------------------*/
@@ -64,26 +55,26 @@ int main(){
     }
     while(1){
         ssize_t byterecv = recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
-        if((!corrupt(0))){
+        if(!packet_corrupt(&recvS,"client")){
             if(recvS.l4info.SeqNum == sendS.l4info.AckNum){
                 last_recv_packet = recvS;
                 fwrite(recvS.payload, 1, recvS.p_len, file);
-                currentAck = last_recv_packet.l4info.SeqNum + byterecv - 20;
+                currentAck = last_recv_packet.l4info.SeqNum + last_recv_packet.p_len;
                 replyS(&sendS,currentSeg,currentAck,ACK);
-                sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
-                sleep(0);
+                sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
+                sleep(1);
             }
             else{
-                printf("Rdt client: Not accmualate ack!\n");
-                sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
-                sleep(0);
+                printf("Rdt client: accumulate ack ,send last ack packet!\n");
+                sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
+                sleep(1);
             }
             
         }
         else{
-            printf("Rdt client: Receive corrupt pakcet\n");
-            sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");
-            sleep(0);
+            printf("Rdt client: Dropped corrupt pakcet\n");
+            sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
+            sleep(1);
         }
     }
 
