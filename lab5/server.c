@@ -101,9 +101,9 @@ int main(){
         recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
         /*-----------------------Transmit Data----------------------*/
         ssize_t bytesRead = 2, bytesRecv = 0;
-        int j = -1,lastacked = -1, count=0, round = 0;
+        int j = -1,nextacked = -1, count=0, round = 0;
         Segment Seg_buffer[10];
-        pthread_t thread;
+        
         int result;
 
         FILE* file = fopen("image.jpg", "rb");
@@ -132,7 +132,7 @@ int main(){
                 round++;
                 currentSeg += bytesRead;
             }
-            lastacked = -1;
+            nextacked = 0;
                 
                 printf("\nRdt server: ------------Start receive Ack packet!--------------\n");
                 for(int i =0;i<round;i++){
@@ -142,37 +142,37 @@ int main(){
                         printf("Rdt server: wrong SeqNum, drop packet\n");
                     }
                     int match = 0;
-                    for(int i=0;i<round;i++){
+                    for(int i=nextacked;i<round;i++){
                         if(recvS.l4info.AckNum == Seg_buffer[i].l4info.SeqNum+Seg_buffer[i].p_len){
                             printf("Rdt server: receive Ack %d\n",j*10+i);
-                            lastacked = i;
+                            nextacked = i+1;
                             match = 1;
                             break;
                         }
                     }
                     if(!match){
-                        printf("Rdt server: receive wrong Ack (waiting for %d)\n",j*10+lastacked+1);
+                        printf("Rdt server: receive wrong Ack (waiting for %d)\n",j*10+nextacked);
                         match = 0;
                     }
                 
                 }
             
             printf("\nRdt server: ------------Timepout! retransmit packet!------------\n");
-            while(lastacked+1<round){
+            while(nextacked<round){
             
-                sendpacket(client_fd,o_buffer,(Seg_buffer+lastacked+1)->p_len+20,Seg_buffer+lastacked+1,"server",PCOR);
+                sendpacket(client_fd,o_buffer,(Seg_buffer+nextacked)->p_len+20,Seg_buffer+nextacked,"server",PCOR);
                 recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
                 
                 if((recvS.l4info.SeqNum) != currentAck){
                     printf("Rdt server: wrong SeqNum, drop packet\n");
                 }
 
-                if(recvS.l4info.AckNum == Seg_buffer[lastacked+1].l4info.SeqNum + Seg_buffer[lastacked+1].p_len){
-                    printf("Rdt server: receive Ack %d\n",j*10+lastacked+1);
-                    lastacked ++;
+                if(recvS.l4info.AckNum == Seg_buffer[nextacked].l4info.SeqNum + Seg_buffer[nextacked].p_len){
+                    printf("Rdt server: receive Ack %d\n",j*10+nextacked);
+                    nextacked ++;
                     
                 }
-                else printf("Rdt server: receive wrong Ack (waiting for %d)\n",j*10+lastacked+1);
+                else printf("Rdt server: receive wrong Ack (waiting for %d)\n",j*10+nextacked);
                 sleep(1);
             }
         }
