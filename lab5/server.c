@@ -40,9 +40,20 @@ void* thread_function(void* arg) {
     
 }
 
-int main(){
+int main(int argc, char *argv[]){
     srand(getpid());
+    double timeout = 0;
     pthread_t thread_id;
+
+    if(argc>1){
+        timeout = (strtod((char* )argv[1],NULL))*100000;
+        if(timeout>=100000) timeout = 100000;
+        else if(timeout<=0) timeout = 0;
+    }
+    
+
+    printf("Set timeout duration = %0.2f seconds \n",timeout/100000);
+
 
     int socket_fd = socket(PF_INET , SOCK_STREAM , 0);
     if (socket_fd < 0){
@@ -184,7 +195,7 @@ int main(){
                     printf("pthread_create failed\n");
                     return 1;
                 }
-                sleep(1);
+                usleep(timeout);
                 result = pthread_cancel(thread_id);
                 if (result != 0) {
                     printf("pthread_cancel failed\n");

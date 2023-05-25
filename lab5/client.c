@@ -62,19 +62,19 @@ int main(){
                 currentAck = last_recv_packet.l4info.SeqNum + last_recv_packet.p_len;
                 replyS(&sendS,currentSeg,currentAck,ACK);
                 sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
-                sleep(1);
+                sleep(0);
             }
             else{
                 printf("Rdt client: accumulate ack ,send last ack packet!\n");
                 sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
-                sleep(1);
+                sleep(0);
             }
             
         }
         else{
             printf("Rdt client: Dropped corrupt pakcet\n");
             sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
-            sleep(1);
+            sleep(0);
         }
     }
 
