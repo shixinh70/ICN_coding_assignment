@@ -121,8 +121,9 @@ int main(){
         //         perror("fcntl F_SETFL O_NONBLOCK");
         //         return 1;
         //     }
-
+        
         while(bytesRead>1){
+            printf("\nRdt server: ------------pipeline send packet!------------\n");
             j++;
             round = 0;
             for(int i=0;i<10;i++){
@@ -153,22 +154,31 @@ int main(){
             //         return 1;
             //     }
             //alarm(1);
+                
+                printf("\nRdt server: ------------Start receive Ack packet!--------------\n");
                 for(int i =0;i<round;i++){
                     recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
                     packet_corrupt(recvS,"server");
                     if((recvS.l4info.SeqNum) != currentAck){
                         printf("Rdt server: wrong SeqNum, drop packet\n");
                     }
+                    int match = 0;
                     for(int i=0;i<round;i++){
                         if(recvS.l4info.AckNum == Seg_buffer[i].l4info.SeqNum+Seg_buffer[i].p_len){
                             printf("Rdt server: Receive Ack %d\n",j*10+i);
                             lastacked = i;
+                            match = 1;
                             break;
                         }
+                    }
+                    if(!match){
+                        printf("Rdt server: Receive wrong Ack (not in the buffer) %d\n",j*10+i);
+                        match = 0;
                     }
                     //printf("Rdt server: wrong SeqNum, drop packet, lastack = %d\n",lastacked);
                 }
             //alarm(0);
+            printf("\nRdt server: ------------Timepout! retransmit packet!------------\n");
             while(lastacked+1<round){
                 // if(){
                 //     // result = pthread_cancel(thread);
@@ -195,7 +205,7 @@ int main(){
                     lastacked ++;
                     
                 }
-                printf("%d\n",lastacked);
+                
                 sleep(0);
             }
         }

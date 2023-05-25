@@ -57,12 +57,17 @@ int main(){
     /*-------------------receive data-------------------------------------------------------*/
     Segment last_recv_packet = recvS;
     int base = sendS.l4info.AckNum;
+    FILE* file = fopen("received_image.jpg", "wb");
+    if (file == NULL) {
+        perror("Fail to open");
+        exit(1);
+    }
     while(1){
         ssize_t byterecv = recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
-        printf("%d %d\n",recvS.l4info.SeqNum,sendS.l4info.AckNum);
-        if((!corrupt(0.3))){
+        if((!corrupt(0))){
             if(recvS.l4info.SeqNum == sendS.l4info.AckNum){
                 last_recv_packet = recvS;
+                fwrite(recvS.payload, 1, recvS.p_len, file);
                 currentAck = last_recv_packet.l4info.SeqNum + byterecv - 20;
                 replyS(&sendS,currentSeg,currentAck,ACK);
                 sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client");

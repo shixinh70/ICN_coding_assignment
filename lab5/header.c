@@ -113,7 +113,7 @@ ssize_t recvpacket(int fd,char* buffer,int buff_len,Segment* recvS,char* tag){
     int p_len = byterecv-20;
     recvS->p_len = p_len;
     parse_packet(buffer, recvS);
-    printf("Rdt %s: receive packet seg= %u, ack= %u from port:%u\n",tag,recvS->l4info.SeqNum,recvS->l4info.AckNum,recvS->l4info.DesPort);
+    printf("Rdt %s: receive packet seg= %u, ack= %u, len= %u from port:%u\n",tag,recvS->l4info.SeqNum,recvS->l4info.AckNum,p_len,recvS->l4info.DesPort);
     return byterecv;
 }
 int packet_corrupt(Segment s,char* tag){
