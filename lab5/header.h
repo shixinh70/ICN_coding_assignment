@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 #define SERVER_PORT 45525
 #define SYN 0X2
 #define ACK 0X10 
