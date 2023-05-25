@@ -1,10 +1,6 @@
 /////////////////////////shared//////////////
 #pragma once
-#include <pthread.h>
-#include <fcntl.h>
 #include <sys/socket.h>
-#include <errno.h>
-#include <signal.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,27 +49,17 @@ typedef struct threadArgs {
 } ThreadArgs;
 
 void* thread_function(void* arg);
-
+int corrupt(double probability);
 void replyS(Segment* sendSegment,uint32_t seg,uint32_t ack, uint16_t flag);
 void parse_packet(char* recvbuffer,Segment* recvSegment);
 void initS(Segment* sendSegment,uint16_t sPort,uint16_t dPort);
-void _checksummaker(Segment* s);
+uint16_t _checksummaker(Segment* s);
 void _psuedoheadmaker(Segment* s);
 void _tcpheadermaker(Segment* s);
 void _headermaker(Segment* s);
-void packetcreator(Segment* sendS, char* paylaod, int p_len,char* buffer);
-void sendpacket(int fd,char* buffer,int buf_len,Segment* sendS,char* tag);
+void sendpacket(int fd,char* buffer,int buf_len,Segment* sendS,char* tag,double prob);
 ssize_t recvpacket(int fd,char* buffer,int buff_len,Segment* recvS,char* tag);
-int packet_corrupt(Segment s,char* tag);
+int packet_corrupt(Segment* s,char* tag);
 void printheader(char* header);
-
-/////////////////////////shared///////////////////////
-
-/////////////////////////server/////////////////////////
-
-
-/////////////////////////server///////////////////////////
-
-//////////////////////////client//////////////////////////
-
-//////////////////////////client/////////////////////////
+uint16_t checksum(Segment* s);
+uint16_t _checksummaker2(Segment* s);
