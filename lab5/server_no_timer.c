@@ -4,46 +4,23 @@
 #define ACK 0X10 
 #define SYNACK 0X12
 #define PCOR 0.3
-
-
-int client_fd;
-char i_buffer[20];
-char o_buffer[1020];
-Segment recvS,sendS;
-uint32_t currentSeg, currentAck;
-
-ssize_t bytesRead = 2, bytesRecv = 0;
-int j = -1,nextacked = 0, count=0, this_round = 0;
-Segment Seg_buffer[10];
+int timeout = 0;
+int get_packet = 0;
 
 
 void* thread_function(void* arg) {
-    while(1){
-        recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");           
-        if((recvS.l4info.SeqNum) != currentAck){
-            printf("Rdt server: wrong SeqNum, drop packet\n");
-        }
-    int match = 0;
-    for(int i=nextacked;i<this_round;i++){
-        if(recvS.l4info.AckNum == Seg_buffer[i].l4info.SeqNum+Seg_buffer[i].p_len){
-            printf("Rdt server: receive Ack %d\n",j*10+i);
-            nextacked = i+1;
-            match = 1;
-            break;
-        }
-    }
-    if(!match){
-        printf("Rdt server: receive wrong Ack (waiting for %d)\n",j*10+nextacked);
-        match = 0;
-    }
-    }
+    while(get_packet){};
+    ThreadArgs* args = (ThreadArgs*)arg;
+    //recvpacket(args->fd,args->buffer,args->buff_len,args->recvS,"server");
+    get_packet = 1;
     
+    
+    return NULL;
 }
 
 int main(){
     srand(getpid());
-    pthread_t thread_id;
-
+   
     int socket_fd = socket(PF_INET , SOCK_STREAM , 0);
     if (socket_fd < 0){
         printf("Server: Fail to create a socket.");
@@ -70,7 +47,7 @@ int main(){
         close(socket_fd);
         exit(0);
     }
-    
+    int client_fd;
     struct sockaddr_in clientAddr;
     int client_len = sizeof(clientAddr);
 
@@ -80,21 +57,13 @@ int main(){
     while(1){
         printf("Udt Server: waiting for client connect\n");
         client_fd = accept(socket_fd, (struct sockaddr *)&clientAddr, (socklen_t*)&client_len);
-
-
-        memset(i_buffer,0,sizeof(i_buffer));
-        memset(o_buffer,0,sizeof(i_buffer));
-        memset(&recvS,0,sizeof(recvS));
-        memset(&sendS,0,sizeof(sendS));
-        memset(Seg_buffer,0,sizeof(Seg_buffer));
-        bytesRead =2; bytesRecv =0; j =-1; nextacked =0; count=0; this_round =0;
-        currentAck =0 ; currentSeg=0 ;
-    
-        
         inet_ntop(AF_INET, &(clientAddr.sin_addr), ipAddr, INET_ADDRSTRLEN);//Get client ipaddr(string);
         printf("Udt Server: accept client from %s:%d\n",ipAddr,ntohs(clientAddr.sin_port));
         /*---------------Rdt Server----------------*/
-        
+        char i_buffer[20];
+        char o_buffer[1020];
+        Segment recvS,sendS;
+        uint32_t currentSeg, currentAck;
         uint16_t dPort;
 
         printf("Rdt server: Hello, This is Rdt server on 127.0.0.1:45525\n");
@@ -123,32 +92,14 @@ int main(){
             initS(&sendS,SERVER_PORT,dPort);
             replyS(&sendS,currentSeg,currentAck,SYNACK);
             sendpacket(client_fd,o_buffer,sizeof(o_buffer),&sendS,"server",0);
-        }
-
+        } 
         recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
-        if(packet_corrupt(&recvS,"server")){
-            printf("Rdt server: drop packet\n");
-            close(client_fd);
-            continue;
-        };
-        if(recvS.l4info.DesPort!=SERVER_PORT||recvS.l4info.Flag!=ACK){
-            if(recvS.l4info.DesPort!=SERVER_PORT) printf("Rdt server: Port %u is closed!\n",recvS.l4info.DesPort);
-            else printf("Rdt server: Not a ACK packet(0x2)\n");
-            printf("Rdt server: drop packet\n");
-            close(client_fd);
-            continue;
-        }
-        else{
-            printf("Rdt server: connection established!, ready to transmit data\n");
-            dPort = recvS.l4info.SourcePort;
-            currentSeg = rand();
-            currentAck = recvS.l4info.SeqNum+1;
-            initS(&sendS,SERVER_PORT,dPort);
-            replyS(&sendS,currentSeg,currentAck,SYNACK);
-            sendpacket(client_fd,o_buffer,sizeof(o_buffer),&sendS,"server",0);
-        }
         /*-----------------------Transmit Data----------------------*/
+        ssize_t bytesRead = 2, bytesRecv = 0;
+        int j = -1,nextacked = -1, count=0, round = 0;
+        Segment Seg_buffer[10];
         
+        int result;
 
         FILE* file = fopen("image.jpg", "rb");
         if (file == NULL) {
@@ -162,8 +113,7 @@ int main(){
         while(bytesRead>1){
             printf("\nRdt server: ------------pipeline send packet!------------\n");
             j++;
-            this_round = 0;
-            nextacked = 0;
+            round = 0;
             for(int i=0;i<10;i++){
                 bytesRead = fread(sendS.payload, 1, 1000, file);
                 if(bytesRead<1) break;
@@ -174,30 +124,56 @@ int main(){
                 memcpy(Seg_buffer+i,&sendS,sizeof(Segment));//buffer packet
                 sendpacket(client_fd,o_buffer,sendS.p_len+20,&sendS,"server",PCOR);
                 count++;
-                this_round++;
+                round++;
                 currentSeg += bytesRead;
             }
+            nextacked = 0;
+                
+                printf("\nRdt server: ------------Start receive Ack packet!--------------\n");
+                for(int i =0;i<round;i++){
+                    recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
+                    
+                    if((recvS.l4info.SeqNum) != currentAck){
+                        printf("Rdt server: wrong SeqNum, drop packet\n");
+                    }
+                    int match = 0;
+                    for(int i=nextacked;i<round;i++){
+                        if(recvS.l4info.AckNum == Seg_buffer[i].l4info.SeqNum+Seg_buffer[i].p_len){
+                            printf("Rdt server: receive Ack %d\n",j*10+i);
+                            nextacked = i+1;
+                            match = 1;
+                            break;
+                        }
+                    }
+                    if(!match){
+                        printf("Rdt server: receive wrong Ack (waiting for %d)\n",j*10+nextacked);
+                        match = 0;
+                    }
+                
+                }
             
-            while(nextacked<this_round){
-                int result = pthread_create(&thread_id, NULL, thread_function, NULL);
-                if (result != 0) {
-                    printf("pthread_create failed\n");
-                    return 1;
-                }
-                sleep(1);
-                result = pthread_cancel(thread_id);
-                if (result != 0) {
-                    printf("pthread_cancel failed\n");
-                    return 1;
-                }
-                pthread_join(thread_id, NULL);
-                printf("\nRdt server: ------------Timepout! retransmit packet!------------\n");
+            printf("\nRdt server: ------------Timepout! retransmit packet!------------\n");
+            while(nextacked<round){
+            
                 sendpacket(client_fd,o_buffer,(Seg_buffer+nextacked)->p_len+20,Seg_buffer+nextacked,"server",PCOR);
+                recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
+                
+                if((recvS.l4info.SeqNum) != currentAck){
+                    printf("Rdt server: wrong SeqNum, drop packet\n");
+                }
+
+                if(recvS.l4info.AckNum == Seg_buffer[nextacked].l4info.SeqNum + Seg_buffer[nextacked].p_len){
+                    printf("Rdt server: receive Ack %d\n",j*10+nextacked);
+                    nextacked ++;
+                    
+                }
+                else printf("Rdt server: receive wrong Ack (waiting for %d)\n",j*10+nextacked);
+                sleep(1);
             }
         }
         close(client_fd);
         /*-----------------------Transmit Data----------------------*/
-        printf("Rdt server: finish transmition!\n");
+
         printf("Rdt server: close Rdt client\n");
     }
 
