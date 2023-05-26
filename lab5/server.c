@@ -203,7 +203,7 @@ int main(int argc, char *argv[]){
                 }
 
                 
-                usleep(timeout*100000);
+                usleep(timeout*1000000);
                
                 result = pthread_cancel(thread_id);
                 if (result != 0) {
