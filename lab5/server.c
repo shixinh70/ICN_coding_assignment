@@ -18,6 +18,7 @@ Segment Seg_buffer[10];
 
 
 void* thread_function(void* arg) {
+    
     while(1){
         recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");           
         if((recvS.l4info.SeqNum) != currentAck){
@@ -29,7 +30,7 @@ void* thread_function(void* arg) {
             printf("Rdt server: receive Ack %d\n",j*10+i);
             nextacked = i+1;
             match = 1;
-            break;
+            //break;
         }
     }
     if(!match){
@@ -41,24 +42,28 @@ void* thread_function(void* arg) {
 }
 
 int main(int argc, char *argv[]){
+
     srand(getpid());
-    double timeout = 0;
-    pthread_t thread_id;
-
-    if(argc>1){
-        timeout = (strtod((char* )argv[1],NULL))*100000;
-        if(timeout>=100000) timeout = 100000;
-        else if(timeout<=0) timeout = 0;
-    }
-    
-
-    printf("Set timeout duration = %0.2f seconds \n",timeout/100000);
-
-
     int socket_fd = socket(PF_INET , SOCK_STREAM , 0);
     if (socket_fd < 0){
         printf("Server: Fail to create a socket.");
     }
+
+    double timeout = 0.1;
+    pthread_t thread_id;
+
+    if(argc>1){
+        timeout = (strtod((char* )argv[1],NULL));
+        if(timeout>=1) timeout = 1;
+        else if(timeout<=0.1) timeout = 0.1;
+    }
+    
+    
+
+    printf("Set timeout duration = %0.2f seconds \n",timeout);
+
+
+    
     
     
     // Set up server's address.
@@ -190,26 +195,34 @@ int main(int argc, char *argv[]){
             }
             
             while(nextacked<this_round){
+                
                 int result = pthread_create(&thread_id, NULL, thread_function, NULL);
                 if (result != 0) {
                     printf("pthread_create failed\n");
                     return 1;
                 }
-                usleep(timeout);
+
+                
+                usleep(timeout*100000);
+               
                 result = pthread_cancel(thread_id);
                 if (result != 0) {
                     printf("pthread_cancel failed\n");
                     return 1;
                 }
                 pthread_join(thread_id, NULL);
+                if(nextacked>=this_round) break;
                 printf("\nRdt server: ------------Timepout! retransmit packet!------------\n");
                 sendpacket(client_fd,o_buffer,(Seg_buffer+nextacked)->p_len+20,Seg_buffer+nextacked,"server",PCOR);
             }
         }
+        printf("Rdt server: finish transmition...!\n\n");
+        
+        sleep(1);
+        printf("Rdt server: close Rdt client\n");
         close(client_fd);
         /*-----------------------Transmit Data----------------------*/
-        printf("Rdt server: finish transmition!\n");
-        printf("Rdt server: close Rdt client\n");
+        
     }
 
 }
