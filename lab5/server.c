@@ -3,7 +3,7 @@
 #define SYN 0X2
 #define ACK 0X10 
 #define SYNACK 0X12
-#define PCOR 0.3
+
 
 
 int client_fd;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]){
         printf("Server: Fail to create a socket.");
     }
 
-    double timeout = 0.1;
+    double timeout = 0.1, PCOR = 0.3;
     pthread_t thread_id;
 
     if(argc>1){
@@ -57,10 +57,15 @@ int main(int argc, char *argv[]){
         if(timeout>=1) timeout = 1;
         else if(timeout<=0.1) timeout = 0.1;
     }
-    
+
+    if(argc>2){
+        PCOR = (strtod((char* )argv[2],NULL));
+        if(PCOR>=1) PCOR = 1;
+        else if(PCOR<=0) PCOR = 0;
+    }
     
 
-    printf("Set timeout duration = %0.2f seconds \n",timeout);
+    printf("Set timeout duration = %0.2f seconds, corrupt probability = %.2f \n",timeout);
 
 
     
