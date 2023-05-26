@@ -55,7 +55,7 @@ int main(){
     }
     while(1){
         ssize_t byterecv = recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
-        if(!packet_corrupt(&recvS,"client")){
+        if(/*!packet_corrupt(&recvS,"client")*/1){
             if(recvS.l4info.SeqNum == sendS.l4info.AckNum){
                 last_recv_packet = recvS;
                 fwrite(recvS.payload, 1, recvS.p_len, file);

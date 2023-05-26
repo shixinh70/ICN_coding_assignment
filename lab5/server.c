@@ -161,7 +161,7 @@ int main(int argc, char *argv[]){
             currentAck = recvS.l4info.SeqNum+1;
             initS(&sendS,SERVER_PORT,dPort);
             replyS(&sendS,currentSeg,currentAck,SYNACK);
-            sendpacket(client_fd,o_buffer,sizeof(o_buffer),&sendS,"server",0);
+            //sendpacket(client_fd,o_buffer,sizeof(o_buffer),&sendS,"server",0);
         }
         /*-----------------------Transmit Data----------------------*/
         
