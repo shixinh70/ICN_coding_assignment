@@ -1,29 +1,4 @@
-#include "header.h"
-
-int main(){
-    srand(getpid());
-        //Create socket.
-    int socket_fd = socket(PF_INET, SOCK_STREAM, 0);
-    if (socket_fd < 0) {
-        printf("Create socket fail!\n");
-        return -1;
-    }
-
-    //Set up server's address.
-    struct sockaddr_in serverAddr = {
-        .sin_family = AF_INET,
-        .sin_addr.s_addr = inet_addr("127.0.0.1"),
-        .sin_port = htons(45525)
-    };
-    int server_len = sizeof(serverAddr);
-
-    //Connect to server's socket.
-    if (connect(socket_fd, (struct sockaddr *)&serverAddr, server_len) == -1) {
-        printf("Connect server failed!\n");
-        close(socket_fd);
-        exit(0);
-    }
-    /*--------3handshake---------*/
+/*--------3handshake---------*/
     char o_buffer[20], i_buffer[1020];
     uint32_t currentSeg, currentAck;
     uint16_t sPort,Dport;
@@ -41,7 +16,7 @@ int main(){
     replyS(&sendS,currentSeg,currentAck,ACK);
     sendpacket(socket_fd,o_buffer,sizeof(o_buffer),&sendS,"client",0);
     /*--------3handshake---------*/
-    printf("----------------------------Receive data!-----------------------------\n");
+
     /*-------------------receive data-------------------------------------------------------*/
     Segment last_recv_packet = recvS;
     int base = sendS.l4info.AckNum;
@@ -52,7 +27,7 @@ int main(){
     }
     while(1){
         ssize_t byterecv = recvpacket(socket_fd,i_buffer,sizeof(i_buffer),&recvS,"client");
-        if(!packet_corrupt(i_buffer,byterecv,"client")){
+        if(/*!packet_corrupt(i_buffer,byterecv,"client")*/1){
             if(recvS.l4info.SeqNum == sendS.l4info.AckNum){
                 last_recv_packet = recvS;
                 fwrite(recvS.payload, 1, recvS.p_len, file);
@@ -76,5 +51,3 @@ int main(){
             sleep(0);
         }
     }
-    
-}

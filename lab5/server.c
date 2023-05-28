@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
     }
     
 
-    printf("Set timeout duration = %0.2f seconds, corrupt probability = %.2f \n",timeout);
+    printf("Set timeout duration = %0.2f seconds, corrupt probability = %0.2f \n",timeout, PCOR);
 
 
     
@@ -113,25 +113,24 @@ int main(int argc, char *argv[]){
     
         
         inet_ntop(AF_INET, &(clientAddr.sin_addr), ipAddr, INET_ADDRSTRLEN);//Get client ipaddr(string);
-        printf("Udt Server: accept client from %s:%d\n",ipAddr,ntohs(clientAddr.sin_port));
+        printf("Udt Server: accept client from %s:%d\n\n",ipAddr,ntohs(clientAddr.sin_port));
         /*---------------Rdt Server----------------*/
         
         uint16_t dPort;
-
+        int recvbytes;
         printf("Rdt server: Hello, This is Rdt server on 127.0.0.1:45525\n");
         printf("Rdt server: Waiting for the client to connect\n");
-        /*--------------3handshake-----------------*/
-        /*------------------SYN--------------------*/
-        recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
-
-        if(packet_corrupt(&recvS,"server")){
-            printf("Rdt server: drop packet\n");
-            close(client_fd);
-            continue;
-        };
-        if(recvS.l4info.DesPort!=SERVER_PORT||recvS.l4info.Flag!=SYN){
-            if(recvS.l4info.DesPort!=SERVER_PORT) printf("Rdt server: Port %u is closed!\n",recvS.l4info.DesPort);
-            else printf("Rdt server: Not a SYN packet(0x2)\n");
+        /*----------------------------------3handshake--------------------------------*/
+        /*------------------RECV SYN--------------------*/
+        recvbytes = recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
+        // if(packet_corrupt(i_buffer,recvbytes,"server")){
+        //     printf("packet corrupt!\n");
+        //     continue;
+        // }
+        if(recvS.l4info.DesPort!=SERVER_PORT||recvS.l4info.Flag!=SYN||recvS.l4info.AckNum!=0){
+            if(recvS.l4info.DesPort!=SERVER_PORT) printf("Rdt server: port %u is closed!\n",recvS.l4info.DesPort);
+            if(recvS.l4info.Flag!=SYN) printf("Rdt server: not a SYN packet(0x2)\n");
+            if(recvS.l4info.AckNum!=0) printf("Rdt server: wrong ack# \n");
             printf("Rdt server: drop packet\n");
             close(client_fd);
             continue;
@@ -145,32 +144,28 @@ int main(int argc, char *argv[]){
             replyS(&sendS,currentSeg,currentAck,SYNACK);
             sendpacket(client_fd,o_buffer,sizeof(o_buffer),&sendS,"server",0);
         }
+        /*------------------RECV SYN--------------------*/
 
+        /*------------------RECV ACK--------------------*/
         recvpacket(client_fd,i_buffer,sizeof(i_buffer),&recvS,"server");
-        if(packet_corrupt(&recvS,"server")){
-            printf("Rdt server: drop packet\n");
-            close(client_fd);
-            continue;
-        };
-        if(recvS.l4info.DesPort!=SERVER_PORT||recvS.l4info.Flag!=ACK){
+        if(recvS.l4info.DesPort!=SERVER_PORT||recvS.l4info.Flag!=ACK||recvS.l4info.AckNum != currentSeg+1 ||recvS.l4info.SeqNum!=currentAck){
             if(recvS.l4info.DesPort!=SERVER_PORT) printf("Rdt server: Port %u is closed!\n",recvS.l4info.DesPort);
-            else printf("Rdt server: Not a ACK packet(0x2)\n");
+            if(recvS.l4info.Flag!=ACK)("Rdt server: Not a ACK packet(0x2)\n");
+            if(recvS.l4info.SeqNum!=currentAck) printf("Rdt server: wrong seg# \n");
+            if(recvS.l4info.AckNum != currentSeg+1) printf("Rdt server: wrong ack# \n");
             printf("Rdt server: drop packet\n");
             close(client_fd);
             continue;
         }
         else{
             printf("Rdt server: connection established!, ready to transmit data\n");
-            dPort = recvS.l4info.SourcePort;
-            currentSeg = rand();
-            currentAck = recvS.l4info.SeqNum+1;
-            initS(&sendS,SERVER_PORT,dPort);
-            replyS(&sendS,currentSeg,currentAck,SYNACK);
-            //sendpacket(client_fd,o_buffer,sizeof(o_buffer),&sendS,"server",0);
         }
-        /*-----------------------Transmit Data----------------------*/
-        
+        /*------------------RECV ACK--------------------*/
+        /*----------------------------------3handshake--------------------------------*/
 
+
+
+        /*-----------------------Transmit Data----------------------*/
         FILE* file = fopen("image.jpg", "rb");
         if (file == NULL) {
             perror("fail to open");

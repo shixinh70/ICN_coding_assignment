@@ -1,29 +1,25 @@
 #include "header.h"
-/////////////////////////common///////////////////////////
 
-// uint16_t _checksummaker(Segment* s){
-//     int n_bytes = (s->l4info.HeaderLen)*4 + s->p_len + 12;
-//     if((n_bytes)%2==1) n_bytes++; 
-//     printf("%d\n",n_bytes);
-//     char temp[1024] ={0};
-//     uint32_t buffer = 0;
-//     memcpy(temp,s->header,20);
-//     memcpy(temp+20,s->pseudoheader,12);
-//     memcpy(temp+32,s->payload,s->p_len);
-//     uint16_t* p = (uint16_t*)temp;
-//     for(int i =0;i<((n_bytes+12)/2);i++){
-//         if(i==8) continue;
-//         buffer += *(p+i);
-//         while(buffer>0xffff){
-//             buffer = (buffer&0xffff) + (buffer>>16);
-//             printf("1carry=%x\n",buffer);
-//         }
-//     }
-//     buffer = (~(buffer))&0xffff;
-//     printf("creater:buffer =  %x\n",buffer);
-//     memcpy(s->header+16,&buffer,2);
-//     return buffer;
-// }
+
+
+
+
+uint16_t mychecksum(char* buffer, int buffer_len){
+    if((buffer_len)%2==1) buffer_len++;
+    uint32_t ibuffer = 0;
+    uint16_t* p = (uint16_t*)buffer;
+    for(int i =0;i<(buffer_len/2);i++){    
+        ibuffer += (*(p+i)); 
+        while(ibuffer>0xffff){
+            ibuffer = (ibuffer&0xffff) + (ibuffer>>16);
+            
+        }
+    }
+    
+    ibuffer = (~(ibuffer))&0xffff;
+    return ntohs(ibuffer);
+}
+
 uint16_t _checksummaker(Segment* s){
     int n_bytes = (s->l4info.HeaderLen)*4 + s->p_len + 12;
     if((n_bytes)%2==1) n_bytes++; 
@@ -33,7 +29,7 @@ uint16_t _checksummaker(Segment* s){
     memcpy(temp+20,s->pseudoheader,12);
     memcpy(temp+32,s->payload,s->p_len);
     uint16_t* p = (uint16_t*)temp;
-    for(int i =0;i<((n_bytes+12)/2);i++){
+    for(int i =0;i<((n_bytes)/2);i++){
         if(i==8) continue;
         buffer += *(p+i);
         while(buffer>0xffff){
@@ -42,29 +38,9 @@ uint16_t _checksummaker(Segment* s){
     }
     buffer = (~(buffer))&0xffff;
     memcpy(s->header+16,&buffer,2);
-    return buffer;
+    return ntohs(buffer);
 }
-uint16_t checksum(Segment* s){
-    
-    int n_bytes = (s->l4info.HeaderLen)*4 + s->p_len + 12;
-    if((n_bytes)%2==1) n_bytes++; 
-    char temp[2048] ={0};
-    uint32_t buffer = 0;
-    memcpy(temp,s->header,20);
-    memcpy(temp+20,s->pseudoheader,12);
-    memcpy(temp+32,s->payload,s->p_len);
-    uint16_t* p = (uint16_t*)temp;
-    for(int i =0;i<((n_bytes+12)/2);i++){
-        if(i==8) continue;
-        buffer += *(p+i);
-        while(buffer>0xffff){
-            buffer = (buffer&0xffff) + (buffer>>16);
-            
-        }
-    }
-    buffer = (~(buffer))&0xffff;
-    return buffer;
-}
+
 void _psuedoheadmaker(Segment* s){
     
     uint32_t temp[3] = {0};
@@ -102,7 +78,7 @@ void initS(Segment* sendSegment,uint16_t sPort,uint16_t dPort){
     sendSegment->l4info.SourcePort = sPort;
     sendSegment->l4info.DesPort = dPort;
     sendSegment->l4info.HeaderLen = 5; 
-    sendSegment->l4info.WindowSize = 65525;
+    sendSegment->l4info.WindowSize = 65535;
 }
 void sendpacket(int fd,char* buffer,int buf_len,Segment* sendS,char* tag,double prob){
     _headermaker(sendS);
@@ -155,18 +131,26 @@ void parse_packet(char* recvbuffer,Segment* recvSegment){
     
 }
 
-int packet_corrupt(Segment* s,char* tag){
-    uint16_t packet_checksum = s->l4info.CheckSum;
-    uint16_t compute_checksum = htons(checksum(s));
-    
-    if(packet_checksum != compute_checksum){
-        printf("Rdt %s: valid checksum! , packet corrupt!\n",tag);
-        return 1;
+int packet_corrupt(char* i_buffer,int i_buffer_len,char* tag){
+    uint32_t temp[3] = {0};
+    char pseudoheader[12] = {0};
+    temp[0] = inet_addr("127.0.0.1");
+    temp[1] = inet_addr("127.0.0.1");
+    temp[2] = htonl((20)+(6<<16) + 0);
+    for(int i=0;i<3;i++){
+        memcpy(pseudoheader+(4*i),temp+i,4);
     }
-    else return 0;
+    char buffer[2048]=  {0};
+    memcpy(buffer,pseudoheader,12);
+    memcpy(buffer+12,i_buffer,i_buffer_len);
+    uint16_t compute_checksum = mychecksum(buffer,i_buffer_len+12);
+
+    if(compute_checksum==0){
+        return 0;
+    }
+    else return 1;
+
 }
-
-
 int corrupt(double probability) {
     double randomNum = (double)rand() / RAND_MAX;
 
