@@ -30,7 +30,7 @@ typedef struct Segment{
     L3info l3info;
     L4info l4info;
 }Segment;
-uint16_t mychecksum(char* packet, int packet_len);
+uint16_t mychecksum(char* buffer, int packet_len);
 uint16_t mychecksum(char* buffer, int buffer_len){
     if((buffer_len)%2==1) buffer_len++;
     uint32_t checksum = 0;
