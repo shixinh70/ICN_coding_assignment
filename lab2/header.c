@@ -1,24 +1,23 @@
 #include"header.h"
 
 uint32_t myrand(int min,int max);
-void _checksummaker(Segment* s,char* code);
-void _psuedoheadmaker(Segment* s,char* code);
-void _tcpheadermaker(Segment* s,char* code);
-void _headermaker(Segment* s,char* code);
-void printheader(char* header);
-void printsegment(Segment* s);
-void headercompare(char* ans ,char* input, char* result);
-void mysend(int fd,char *output);
-void createtestfile(Segment* test);
-void itos(int num,char* str);
 void randip(char* ip);
 
-void _checksummaker(Segment* s,char* code){
+void mysend(int fd,char *output);
+void itos(int num,char* str);
 
-    if(strcmp(code,"wayne75525")!=0){
-        printf("Don't do this\n");
-        exit(0);
-    }
+void headermaker(Segment* s);
+void checksummaker(Segment* s);
+void psuedoheadmaker(Segment* s);
+void tcpheadermaker(Segment* s);
+void createtestfile(Segment* test);
+void headercompare(char* ans ,char* input, char* result);
+void printheader(char* header);
+void printsegment(Segment* s);
+
+
+void checksummaker(Segment* s){
+
     char temp[32] ={0};
     uint32_t buffer = 0;
     memcpy(temp,s->header,20);
@@ -30,11 +29,7 @@ void _checksummaker(Segment* s,char* code){
     buffer = (~((buffer&0xffff) + (buffer>>16)))&0xffff;
     memcpy(s->header+16,&buffer,2);
 }
-void _psuedoheadmaker(Segment* s,char* code){
-    if(strcmp(code,"wayne75525")!=0){
-        printf("Don't do this\n");
-        exit(0);
-    }
+void psuedoheadmaker(Segment* s){
     uint32_t temp[3] = {0};
     temp[0] = inet_addr(s->l3info.SourceIpv4);
     temp[1] = inet_addr(s->l3info.DesIpv4);
@@ -43,11 +38,8 @@ void _psuedoheadmaker(Segment* s,char* code){
         memcpy(s->pseudoheader+4*i,temp+i,4);
     }
 }
-void _tcpheadermaker(Segment* s,char* code){
-    if(strcmp(code,"wayne75525")!=0){
-        printf("Don't do this\n");
-        exit(0);
-    }
+void tcpheadermaker(Segment* s){
+    
     uint32_t temp[5] = {0};//把array中最高記憶體位置的東西抓到最低記憶體位置(header中高記憶體位置為(Source port address)，所以要填高記憶體位置)
     temp[0] = 0;
     temp[1] = s->l4info.WindowSize + (s->l4info.Flag<<16) +(s->l4info.HeaderLen<<28);
@@ -59,20 +51,17 @@ void _tcpheadermaker(Segment* s,char* code){
         s->header[i] = *(ph+(20-i-1));
     }
 }
-void _headermaker(Segment* s,char* code){
-    if(strcmp(code,"asiagodtone")!=0){
-        printf("Don't do this\n");
-        exit(0);
-    }
-    _tcpheadermaker(s,"wayne75525");
-    _psuedoheadmaker(s,"wayne75525");
-    _checksummaker(s,"wayne75525");
+void headermaker(Segment* s){
+    
+    tcpheadermaker(s);
+    psuedoheadmaker(s);
+    checksummaker(s);
     
 
 }
 void printheader(char* header){
     for(int i=0;i<20;i++){
-        printf("%X ",(uint8_t)header[i]);
+        printf("%01X ",(uint8_t)header[i]);
     }
 }
 void printsegment(Segment* s){
@@ -101,7 +90,7 @@ void headercompare(char* ans ,char* input, char* result){
             tag[i] = 1;
             count++;
         }
-        sprintf(result+strlen(result),"%2X ",(uint8_t)ans[i]);
+        sprintf(result+strlen(result),"%02X ",(uint8_t)ans[i]);
     }
     if(tag[0]&&tag[1]) {sp=1;t2score+=3;}
     if(tag[2]&&tag[3]) {dp=1;t2score+=3;}
@@ -126,7 +115,7 @@ uint32_t myrand(int min,int max){
 void mysend(int fd,char *output){
     char buffer[1024]={0};
     strcpy(buffer,output);
-    send(fd,buffer,sizeof(buffer),0);
+    send(fd,buffer,strlen(buffer),0);
 }
 void itos(int num,char* str){
     int i, rem, len = 0, n;
@@ -167,32 +156,37 @@ void createtestfile(Segment* test){
     test->l4info.WindowSize = myrand(1,__UINT16_MAX__);
 }
 void serverfunction(int clientfd){
-    char ibuffer[1024] = {};
-    char obuffer[1024] = {};
+    char ibuffer[1024] = {0};
+    char obuffer[1024] = {0};
     mysend(clientfd,"Enter \"test\" to start!. or \"quit\" to leave!" );
         while(1){
-            recv(clientfd,ibuffer,sizeof(ibuffer),0);
-            if(strcmp(ibuffer,"test")==0){
+            if(recv(clientfd,ibuffer,sizeof(ibuffer),0)<=0) break;
+                if(strcmp(ibuffer,"test")==0){
                 memset(ibuffer,0,sizeof(ibuffer));
                 Segment s_test;
-                char input_header[20];
                 createtestfile(&s_test);
                 memcpy(obuffer,&s_test,sizeof(Segment));
-                send(clientfd,obuffer,sizeof(obuffer),0);//send test file
+                send(clientfd,obuffer,sizeof(Segment),0);//send test file
                 memset(obuffer,0,sizeof(obuffer));
-                recv(clientfd,ibuffer,sizeof(ibuffer),0);//receive client's header
+
+                char input_header[20];
+                if(recv(clientfd,ibuffer,sizeof(ibuffer),0)<=0) break;//receive client's header
                 memcpy(input_header,ibuffer,sizeof(input_header));
                 memset(obuffer,0,sizeof(obuffer));
-                _headermaker(&s_test,"asiagodtone");
+                headermaker(&s_test);
                 headercompare(s_test.header,input_header,obuffer);
-                send(clientfd,obuffer,sizeof(obuffer),0);
+
+                send(clientfd,obuffer,strlen(obuffer),0);
                 memset(obuffer,0,sizeof(obuffer));
                 break;
-            }
-            else if (strcmp(ibuffer,"quit")==0) break;
-            else {
-                mysend(clientfd,"Wrong input!!,enter \"test\" to start!." );
-            }
+
+                }else if (strcmp(ibuffer,"quit")==0){
+                    break;
+
+                }else {
+                    mysend(clientfd,"Wrong input!!,enter \"test\" to start!." );
+                }
+            
 
         }
 }
@@ -204,15 +198,14 @@ void receivedata(int sockfd,Segment* s){
     while(recv(sockfd,ibuffer,sizeof(ibuffer),0)){
         printf("server: %s\n",ibuffer);
         scanf("%s",obuffer);
-        
-        send(sockfd,obuffer,sizeof(obuffer),0);
-
+        send(sockfd,obuffer,strlen(obuffer),0);
+       
         if(strcmp(obuffer,"test")==0) {
             memset(obuffer,0,sizeof(obuffer));
             printf("Receive Data from server!...\n");
             recv(sockfd,ibuffer,sizeof(ibuffer),0);
             memcpy(s,ibuffer,sizeof(Segment));
-            printsegment(s);    
+            printsegment(s);
             break;   
         }
         else if(strcmp(obuffer,"quit")==0){
@@ -222,14 +215,13 @@ void receivedata(int sockfd,Segment* s){
         }
         
     }
-    
-
 }
+
 void sendheader(int sockfd, char* header){
     char obuffer[1024] = {0};
     char ibuffer[1024] = {0};
     memcpy(obuffer,header,20);
-    send(sockfd,obuffer,sizeof(obuffer),0);
+    send(sockfd,obuffer,20,0);
     memset(obuffer,0,sizeof(obuffer));
     recv(sockfd,ibuffer,sizeof(ibuffer),0);
     printf("server: %s\n",ibuffer); 
