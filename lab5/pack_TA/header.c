@@ -143,12 +143,7 @@ int packet_corrupt(char* i_buffer,int i_buffer_len,char* tag){
     char buffer[2048]=  {0};
     memcpy(buffer,pseudoheader,12);
     memcpy(buffer+12,i_buffer,i_buffer_len);
-    uint16_t compute_checksum = mychecksum(buffer,i_buffer_len+12);
-
-    if(compute_checksum==0){
-        return 0;
-    }
-    else return 1;
+    return (mychecksum(buffer,i_buffer_len+12));
 
 }
 int corrupt(double probability) {

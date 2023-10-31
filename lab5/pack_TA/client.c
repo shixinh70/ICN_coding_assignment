@@ -1,5 +1,5 @@
 #include "header.h"
-#define CORRUPT_DETECT 0
+#define CORRUPT_DETECT 1
 
 int main(){
     srand(getpid());
