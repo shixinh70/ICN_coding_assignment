@@ -1,9 +1,5 @@
 #include "header.h"
 
-
-
-
-
 uint16_t mychecksum(char* buffer, int buffer_len){
     if((buffer_len)%2==1) buffer_len++;
     uint32_t ibuffer = 0;
@@ -134,6 +130,7 @@ void parse_packet(char* recvbuffer,Segment* recvSegment){
 int packet_corrupt(char* i_buffer,int i_buffer_len,char* tag){
     uint32_t temp[3] = {0};
     char pseudoheader[12] = {0};
+    //Compute psuedo header (fixed address)
     temp[0] = inet_addr("127.0.0.1");
     temp[1] = inet_addr("127.0.0.1");
     temp[2] = htonl((20)+(6<<16) + 0);
@@ -143,12 +140,12 @@ int packet_corrupt(char* i_buffer,int i_buffer_len,char* tag){
     char buffer[2048]=  {0};
     memcpy(buffer,pseudoheader,12);
     memcpy(buffer+12,i_buffer,i_buffer_len);
+    //If checksum equals to 0, correct ,else corrupt
     return (mychecksum(buffer,i_buffer_len+12));
 
 }
 int corrupt(double probability) {
     double randomNum = (double)rand() / RAND_MAX;
-
     if (randomNum <= probability) {
         return 1;
     } 
