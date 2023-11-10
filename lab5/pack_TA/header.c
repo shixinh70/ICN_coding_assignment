@@ -84,8 +84,13 @@ void sendpacket(int fd,char* buffer,int buf_len,Segment* sendS,char* tag,double 
     }
     printf("Rdt %s: send packet Seg# = %u, Ack# = %u, Payload_len = %u to port:%u\n",tag,sendS->l4info.SeqNum,sendS->l4info.AckNum,sendS->p_len,sendS->l4info.DesPort);
     if(corrupt(prob)){
-        int i = (rand()%buf_len);
-        buffer[i] = ~buffer[i];
+        if(corrupt(0.5)){
+            return ; //packetlost
+        }
+        else{
+            int i = (rand()%buf_len);//packet corrupt
+            buffer[i] = ~buffer[i];
+        }
     }
     send(fd,buffer,buf_len,0);
     memset(buffer,0,buf_len);

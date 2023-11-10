@@ -3,3 +3,6 @@ all:
 	gcc client.c header.c -pthread -o client
 clean:
 	rm server client
+cd:
+	gcc server.c header.c -pthread -o server
+	gcc client.c header.c -pthread -o client -DCORRUPT_DETECT

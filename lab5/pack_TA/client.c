@@ -1,5 +1,11 @@
 #include "header.h"
+#ifdef CORRUPT_DETECT
 #define CORRUPT_DETECT 1
+#endif
+
+#ifndef CORRUPT_DETECT
+#define CORRUPT_DETECT 0
+#endif
 
 int main(){
     srand(getpid());
