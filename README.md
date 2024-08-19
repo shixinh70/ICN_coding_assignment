@@ -31,5 +31,6 @@ curl -X POST --data "input=111065540" http://140.114.79.144/idnex.php
 ### Start from the [Pack_Student](./lab3/pack_student)
 * Task1 - Finishing the Three way handshake of our costom TCP.
 * Task2 - Receive the picture sent from the Server (packets might be corrupted).
+![Screenshot from 2024-08-19 13-44-24](https://github.com/user-attachments/assets/84bb7040-d442-44c3-b238-300f88b7d080)
 * Task3 - Trigger the retransmission of corrupted packet and get the complete picture.
 
