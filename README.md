@@ -4,17 +4,17 @@
 # Build
 * make
 ## Lab 1 - Introduction to Wireshark
-* Capture the icmp packets by Wireshark.
-* Curl the Server and Post the Student_ID as data.
+* TODO - Capture the icmp packets by Wireshark.
+* TODO - the Server and Post the Student_ID as data.
 ```
 ping 8.8.8.8
 curl -X POST --data "input=111065540" http://140.114.79.144/idnex.php
 ```
 ## Lab 2 - TCP Socket Programming
-Start from the [pack](./lab2/Pack_student)
-
-* Connect server and client with TCP socket and successfully send a
+Start from the [Pack_Student](./lab2/Pack_student)
+* TODO - Connect server and client with TCP socket and successfully send a
  message.
-* Create TCP header (without checksum) using l4info.
-* Complete the header (checksum).
+* TODO - Receive the plaint text from the server, and convert it into l4info.
+* TODO - Complete the l4info (checksum).
+
 ## Lab 3
