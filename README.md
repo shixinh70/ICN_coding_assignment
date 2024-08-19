@@ -11,6 +11,8 @@ ping 8.8.8.8
 curl -X POST --data "input=111065540" http://140.114.79.144/idnex.php
 ```
 ## Lab 2 - TCP Socket Programming
+Start from the [pack](./lab2/Pack_student)
+
 * Connect server and client with TCP socket and successfully send a
  message.
 * Create TCP header (without checksum) using l4info.
